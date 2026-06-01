@@ -17,43 +17,70 @@ st.set_page_config(page_title="연애도 결국 호르몬빨? 내 연애 유형 
 os.environ["REPLICATE_API_TOKEN"] = "r8_YWRmG7YPCMcmjrlwFj0bARuc8khOipx3AA6bN"
 
 # ==========================================
-# 2. 배경 이미지 및 CSS 설정 (하얀 박스 완전 투명화)
+# 2. 배경 이미지 및 커스텀 폰트 설정 함수 정의
 # ==========================================
-def set_background(image_file):
-    if os.path.exists(image_file):
-        with open(image_file, "rb") as f:
-            encoded_string = base64.b64encode(f.read()).decode()
-        
-        css = f"""
-        <style>
-        [data-testid="stAppViewContainer"] {{
-            background-image: url("data:image/jpeg;base64,{encoded_string}");
-            background-size: cover;
-            background-position: center;
-        }}
-        [data-testid="stHeader"] {{
-            background-color: transparent;
-        }}
-        /* 메인 컨테이너 및 스트림릿 내부 모든 블록의 배경을 투명하게 강제 설정 */
-        .block-container, div[data-testid="stVerticalBlock"], div[data-testid="stVerticalBlockBorderWrapper"] {{
-            background-color: transparent !important;
-            box-shadow: none !important;
-            border: none !important;
-        }}
-        /* 컨테이너 상단 여백 조절 */
-        .block-container {{
-            padding-top: 2rem !important;
-        }}
-        p, h1, h2, h3, h4, h5, h6, span, label, div {{
-            color: #000000 !important;
-        }}
-        .stRadio > label {{ font-weight: bold; }}
-        </style>
-        """
-        st.markdown(css, unsafe_allow_html=True)
+def set_background_and_font(image_filename, font_filename):
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    image_path = os.path.join(current_dir, image_filename)
+    font_path = os.path.join(current_dir, font_filename)
+    
+    # 1) 이미지 파일을 Base64로 읽기
+    if os.path.exists(image_path):
+        with open(image_path, "rb") as f:
+            img_encoded = base64.b64encode(f.read()).decode()
+    else:
+        st.error(f"⚠️ 이미지를 찾을 수 없습니다: {image_filename}")
+        return
 
-# 배경 사진 파일명
-set_background('background.jpg')
+    # 2) 폰트 파일을 Base64로 읽기
+    if os.path.exists(font_path):
+        with open(font_path, "rb") as f:
+            font_encoded = base64.b64encode(f.read()).decode()
+    else:
+        st.error(f"⚠️ 폰트 파일을 찾을 수 없습니다: {font_filename}")
+        return
+        
+    # 3) CSS에 폰트와 이미지 주입
+    css = f"""
+    <style>
+    /* 폰트 등록 */
+    @font-face {{
+        font-family: 'MyCustomFont';
+        src: url(data:font/ttf;charset=utf-8;base64,{font_encoded}) format('truetype');
+    }}
+    
+    /* 화면 전체의 글씨체를 방금 등록한 폰트로 변경 */
+    html, body, [class*="css"], * {{
+        font-family: 'MyCustomFont', sans-serif !important;
+    }}
+
+    /* 배경 이미지 적용 */
+    [data-testid="stAppViewContainer"] {{
+        background-image: url("data:image/jpeg;base64,{img_encoded}");
+        background-size: cover;
+        background-position: center;
+    }}
+    
+    /* 기존 투명화 설정 */
+    [data-testid="stHeader"] {{ background-color: transparent; }}
+    .block-container, div[data-testid="stVerticalBlock"], div[data-testid="stVerticalBlockBorderWrapper"] {{
+        background-color: transparent !important;
+        box-shadow: none !important;
+        border: none !important;
+    }}
+    .block-container {{ padding-top: 2rem !important; }}
+    p, h1, h2, h3, h4, h5, h6, span, label, div {{
+        color: #000000 !important;
+    }}
+    .stRadio > label {{ font-weight: bold; }}
+    </style>
+    """
+    st.markdown(css, unsafe_allow_html=True)
+
+# ==========================================
+# 💡 위에서 만든 함수 실행 (배경과 폰트 적용)
+# ==========================================
+set_background_and_font('background.jpg', 'x12y12pxMaruMinyaHangul.ttf')
 
 # ==========================================
 # 3. 질문 데이터셋 구성 
