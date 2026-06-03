@@ -129,7 +129,7 @@ def set_background_and_font(image_filename, font_filename):
     """
     st.markdown(css, unsafe_allow_html=True)
 
-set_background_and_font('background3.jpg', 'x12y12pxMaruMinyaHangul.ttf')
+set_background_and_font('background.jpg', 'x12y12pxMaruMinyaHangul.ttf')
 
 # ==========================================
 # 3. 질문 데이터셋 구성 
@@ -282,4 +282,34 @@ elif st.session_state.page == 'result':
     st.markdown(f"""
     <div style="display: flex; height: 35px; width: 100%; border-radius: 10px; overflow: hidden; margin-bottom: 25px; box-shadow: 1px 1px 5px rgba(0,0,0,0.2);">
         <div style="width: {t_pct}%; background-color: #4A90E2; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 14px;">테스토스테론 {t_pct}%</div>
-        <div style="width: {e_pct}%; background-color: #F5A623; display: flex; align-
+        <div style="width: {e_pct}%; background-color: #F5A623; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 14px;">에스트로겐 {e_pct}%</div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("**2. 자극 vs 안정**")
+    st.markdown(f"""
+    <div style="display: flex; height: 35px; width: 100%; border-radius: 10px; overflow: hidden; margin-bottom: 25px; box-shadow: 1px 1px 5px rgba(0,0,0,0.2);">
+        <div style="width: {d_pct}%; background-color: #50E3C2; display: flex; align-items: center; justify-content: center; color: #333; font-weight: bold; font-size: 14px;">도파민 {d_pct}%</div>
+        <div style="width: {s_pct}%; background-color: #D0021B; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 14px;">세로토닌 {s_pct}%</div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.divider()
+    
+    st.markdown("### 🧚 나만의 AI 메이플 캐릭터")
+    with st.spinner('생성형 AI가 사진을 분석하여 캐릭터를 그리고 있습니다. (약 10~20초 소요) 🎨'):
+        ai_result = get_maple_character_from_ai(st.session_state.user_photo, final_type)
+        
+        if ai_result == "API_KEY_MISSING":
+            st.error("🚨 오류: Replicate API 키가 설정되지 않았습니다.")
+        elif ai_result is not None:
+            st.image(ai_result, caption="당신의 특징이 담긴 생성형 AI 메이플 캐릭터!", width=300)
+        else:
+            st.error("🚨 이미지 생성에 실패했습니다.")
+    
+    if st.button("처음부터 다시하기 🔄", use_container_width=True):
+        st.session_state.page = 'intro'
+        st.session_state.idx = 0
+        st.session_state.scores = {"T": 0, "E": 0, "S": 0, "D": 0}
+        st.session_state.user_photo = None
+        st.rerun()
