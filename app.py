@@ -3,7 +3,7 @@ import time
 import base64
 import os
 import pandas as pd
-import replicate  # 🚨 실제 AI API 통신을 위한 라이브러리
+import replicate
 
 # ==========================================
 # 0. 화면 기본 설정
@@ -13,18 +13,16 @@ st.set_page_config(page_title="연애도 결국 호르몬빨? 내 연애 유형 
 # ==========================================
 # 1. API 키 설정 (필수!)
 # ==========================================
-# 발급받으신 Replicate API 키를 아래 따옴표 안에 넣어주세요!
 os.environ["REPLICATE_API_TOKEN"] = "r8_YWRmG7YPCMcmjrlwFj0bARuc8khOipx3AA6bN"
 
 # ==========================================
-# 2. 배경 이미지 및 커스텀 폰트 설정 함수 정의
+# 2. 배경, 폰트 및 ⭐️메신저 레이아웃 강제 맞춤⭐️
 # ==========================================
 def set_background_and_font(image_filename, font_filename):
     current_dir = os.path.dirname(os.path.abspath(__file__))
     image_path = os.path.join(current_dir, image_filename)
     font_path = os.path.join(current_dir, font_filename)
     
-    # 1) 이미지 파일을 Base64로 읽기
     if os.path.exists(image_path):
         with open(image_path, "rb") as f:
             img_encoded = base64.b64encode(f.read()).decode()
@@ -32,7 +30,6 @@ def set_background_and_font(image_filename, font_filename):
         st.error(f"⚠️ 이미지를 찾을 수 없습니다: {image_filename}")
         return
 
-    # 2) 폰트 파일을 Base64로 읽기
     if os.path.exists(font_path):
         with open(font_path, "rb") as f:
             font_encoded = base64.b64encode(f.read()).decode()
@@ -40,47 +37,92 @@ def set_background_and_font(image_filename, font_filename):
         st.error(f"⚠️ 폰트 파일을 찾을 수 없습니다: {font_filename}")
         return
         
-    # 3) CSS에 폰트와 이미지 주입
     css = f"""
     <style>
-    /* 폰트 등록 */
     @font-face {{
         font-family: 'MyCustomFont';
         src: url(data:font/ttf;charset=utf-8;base64,{font_encoded}) format('truetype');
     }}
     
-    /* 화면 전체의 글씨체를 방금 등록한 폰트로 변경 */
-    html, body, [class*="css"], * {{
+    html, body, [class*="css"], .block-container * {{
         font-family: 'MyCustomFont', sans-serif !important;
+        text-align: center !important; 
     }}
 
-    /* 배경 이미지 적용 */
+    /* 텍스트가 하얀색 배경 안에서만 나오도록 위아래 여백 강제 설정 */
+    .block-container {{
+        padding-top: 25vh !important; 
+        padding-bottom: 18vh !important; 
+    }}
+
+    /* ⭐️ 1. 질문 선택지(라디오 버튼) 왼쪽 정렬 ⭐️ */
+    .stRadio > div[role="radiogroup"] {{
+        display: flex;
+        flex-direction: column;
+        align-items: center; 
+        gap: 15px; 
+    }}
+    .stRadio > div[role="radiogroup"] > label {{
+        width: 100%;
+        background-color: rgba(255, 255, 255, 0.6); /* 뒷배경 박스 */
+        padding: 15px 20px !important; /* 왼쪽 여백 추가 */
+        border-radius: 15px;
+        margin-bottom: 5px !important;
+        justify-content: flex-start !important; /* 🚨 가로 기준 왼쪽 정렬 */
+    }}
+    .stRadio > div[role="radiogroup"] > label div {{
+        text-align: left !important; /* 다중 줄 텍스트도 왼쪽 정렬 */
+    }}
+    .stRadio > label {{ display: none; }} 
+
+    /* 배경 이미지 꽉 채우기 */
     [data-testid="stAppViewContainer"] {{
         background-image: url("data:image/jpeg;base64,{img_encoded}");
-        background-size: cover;
-        background-position: center;
+        background-size: 100% 100%; 
+        background-position: center top;
+        background-attachment: fixed; 
     }}
     
-    /* 기존 투명화 설정 */
     [data-testid="stHeader"] {{ background-color: transparent; }}
-    .block-container, div[data-testid="stVerticalBlock"], div[data-testid="stVerticalBlockBorderWrapper"] {{
+    div[data-testid="stVerticalBlock"], div[data-testid="stVerticalBlockBorderWrapper"] {{
         background-color: transparent !important;
         box-shadow: none !important;
         border: none !important;
     }}
-    .block-container {{ padding-top: 2rem !important; }}
     p, h1, h2, h3, h4, h5, h6, span, label, div {{
         color: #000000 !important;
     }}
-    .stRadio > label {{ font-weight: bold; }}
+
+    /* ⭐️ 2. 하단 버튼 위치 '대화 입력창' 정중앙으로 올림 ⭐️ */
+    div.stButton {{
+        position: fixed !important;
+        bottom: 5.5vh !important; /* 🚨 기존 3vh에서 5.5vh로 높여서 박스 중앙에 맞춤 */
+        left: 18vw !important; 
+        width: 78vw !important; 
+        z-index: 9999 !important; 
+    }}
+    
+    div.stButton > button {{
+        width: 100% !important;
+        height: 8vh !important; 
+        background-color: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        color: #000000 !important;
+        font-weight: bold !important;
+        font-size: 20px !important;
+        padding: 10px 0 !important;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }}
+    div.stButton > button:hover {{ color: #777777 !important; }}
+    div.stButton > button:active, div.stButton > button:focus {{ color: #000000 !important; }}
     </style>
     """
     st.markdown(css, unsafe_allow_html=True)
 
-# ==========================================
-# 💡 위에서 만든 함수 실행 (배경과 폰트 적용)
-# ==========================================
-set_background_and_font('background1.jpg', 'x12y12pxMaruMinyaHangul.ttf')
+set_background_and_font('background3.jpg', 'x12y12pxMaruMinyaHangul.ttf')
 
 # ==========================================
 # 3. 질문 데이터셋 구성 
@@ -89,7 +131,7 @@ questions = [
     {"q": "1. 데이트 중 연인이 \"나 요즘 회사(학교) 일 때문에 너무 스트레스 받아...\"라고 할 때 나의 반응은?", "opts": ["\"헐, 무슨 일 있었어? 마음 아프다... 맛있는 거 먹으러 가자.\"", "\"그 사람(일)이 왜 그런대? 일단 이번 주말은 아무 생각 말고 푹 쉬어.\""], "types": ["E", "T"]},
     {"q": "2. 기념일이나 생일 선물을 고를 때, 내가 더 중요하게 생각하는 것은?", "opts": ["연인의 평소 취향, 손편지, 감동적인 서프라이즈", "연인에게 지금 당장 가장 쓸모 있고 필요한 실용적인 아이템"], "types": ["E", "T"]},
     {"q": "3. 연인과 사소한 말다툼이 생겼을 때, 내가 취하는 행동은?", "opts": ["말 안 통하면 눈물부터 나거나 마음이 가라앉을 때까지 대화를 미룸", "\"그래서 뭐가 문제인데?\"라며 그 자리에서 시시비비를 가리고 끝내야 함"], "types": ["E", "T"]},
-    {"q": "4. 연인이 나와 어울리지 않는 옷을 입고 와서 \"나 오늘 어때?\"라고 물어본다면?", "opts": ["\"어? 귀엽네! 잘 어울려~\" 일단 기분 좋게 칭찬부터 해준다.", "\"새로운 모습인거 같아. 근데 약간 톤이 안 맞는 듯!\" 솔직하게 피드백한다."], "types": ["E", "T"]},
+    {"q": "4. 연인이 나와 어울리지 않는 옷을 입고 와서 \"나 오늘 어때?\"라고 물어본다면?", "opts": ["\"어? 귀엽네! 잘 어울려~\" 일단 기분 좋게 칭찬부터 해준다.", "\"새로운 모습인거 같아. 단점이 부각돼 보여!\" 솔직하게 피드백한다."], "types": ["E", "T"]},
     {"q": "5. 연인과 사진 찍을 때 내가 더 중요하게 생각하는 건?", "opts": ["분위기, 감성, 표정까지 예쁘게 나오는 무드샷", "각도 오래 잡는 거 귀찮음. 빨리 찍고 자연스러운 게 최고"], "types": ["E", "T"]},
     {"q": "6. 내가 연인에게 사랑받고 있다고 격하게 느끼는 순간은?", "opts": ["\"오늘 고생했어\", \"보고 싶다\" 같은 다정한 말과 따뜻한 포옹을 해줄 때", "내가 가고 싶다던 곳을 기억해서 리드해 주거나, 내 문제를 멋지게 해결해 줄 때"], "types": ["E", "T"]},
     {"q": "7. 연애할 때 내가 자연스럽게 하게 되는 행동은?", "opts": ["상대 반응 하나하나 신경 쓰고 감정 표현 자주 하는 편", "필요한 순간 챙겨주고 행동으로 책임감 보여주는 편"], "types": ["E", "T"]},
@@ -114,45 +156,31 @@ if 'scores' not in st.session_state:
 if 'user_photo' not in st.session_state:
     st.session_state.user_photo = None
 
-# ==========================================
-# 5. 🚨 진짜 생성형 AI 캐릭터 변환 함수
-# ==========================================
 def get_maple_character_from_ai(user_image_file, final_type):
-    """
-    사용자가 올린 사진과 호르몬 결과를 Replicate 서버로 보내서 
-    새로운 픽셀 아트 이미지를 생성하여 받아옵니다.
-    """
     try:
         api_key = os.environ.get("REPLICATE_API_TOKEN")
-        # 실제 입력한 API 키가 아닌 기본 텍스트이거나 키가 없을 경우 차단
         if not api_key or api_key == "여기에_발급받은_API_키를_넣으세요":
             return "API_KEY_MISSING"
 
-        # 사진을 AI가 읽을 수 있도록 변환
         image_bytes = user_image_file.getvalue()
         
-        # 호르몬 유형에 맞게 AI에게 내릴 명령어(Prompt) 작성
         if "테스토스테론" in final_type:
             concept = "cool, logical, confident expression"
         else:
             concept = "warm, gentle, emotional expression"
             
-        # 메이플스토리 도트 스타일로 그려달라는 핵심 명령어
         prompt_text = f"16-bit pixel art, MapleStory game character style, 2d sprite, white background, {concept}, strictly matching the facial features of the person in the provided image."
 
-        # Replicate의 img2img (사진 기반 재생성) 모델 호출
         output = replicate.run(
             "stability-ai/stable-diffusion-img2img:15a3689ee13b0d2616e98820eca31d4c3abcd36672ff6afce5cb6ef165961dcb",
             input={
                 "image": image_bytes,
                 "prompt": prompt_text,
-                "prompt_strength": 0.7, # 0.7 정도가 원본 사진의 이목구비와 픽셀 아트의 균형이 가장 잘 맞습니다.
+                "prompt_strength": 0.7, 
                 "num_inference_steps": 30,
                 "guidance_scale": 7.5
             }
         )
-        
-        # 완성된 이미지의 URL을 반환
         return output[0]
         
     except Exception as e:
@@ -160,13 +188,29 @@ def get_maple_character_from_ai(user_image_file, final_type):
         return None
 
 # ==========================================
-# 6. 화면 라우팅 (페이지 이동 로직)
+# ⭐️ 스크롤이 필요한 창(photo, result) 전용 핑크 박스 CSS 추가 ⭐️
 # ==========================================
-st.markdown("연애도 결국 호르몬빨? 내 연애 유형 테스트")
+if st.session_state.page in ['photo', 'result']:
+    st.markdown("""
+    <style>
+    /* 메인 콘텐츠 영역에만 연한 핑크색 반투명 배경 깔기 */
+    div.block-container > div:first-child > div[data-testid="stVerticalBlock"] {
+        background-color: rgba(255, 235, 240, 0.9) !important; 
+        padding: 30px !important;
+        border-radius: 20px !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
+
+# ==========================================
+# 6. 화면 라우팅
+# ==========================================
 # [화면 1] 인트로
 if st.session_state.page == 'intro':
+    st.markdown("## 연애도 결국 호르몬빨? \n ### 내 연애 유형 테스트")
     st.markdown("연애 유형 테스트와 나의 캐릭터 보러가기")
+    st.write("") 
     if st.button("검사 시작하기", type="primary", use_container_width=True):
         st.session_state.page = 'quiz'
         st.rerun()
@@ -177,9 +221,11 @@ elif st.session_state.page == 'quiz':
     q_data = questions[q_idx]
     
     st.markdown(f"### {q_data['q']}")
+    st.write("") 
+    
     selected_option = st.radio("선택지", options=q_data['opts'], index=None, key=f"radio_{q_idx}", label_visibility="collapsed")
     
-    if st.button("다음 문항으로 ➔", type="primary"):
+    if st.button("다음 문항으로 ➔", type="primary", use_container_width=True):
         if selected_option is None:
             st.error("⚠️ 답변을 선택해주세요!")
         else:
@@ -194,8 +240,8 @@ elif st.session_state.page == 'quiz':
 
 # [화면 3] 사진 업로드
 elif st.session_state.page == 'photo':
-    st.markdown("### 📸 수고하셨습니다! 마지막으로 본인의 사진을 올려주세요.")
-    st.markdown("올려주신 사진과 검사 결과를 융합하여 **나만의 메이플스토리 AI 캐릭터**를 실시간으로 생성합니다!")
+    st.markdown("### 📸 수고하셨습니다!")
+    st.markdown("마지막으로 본인의 사진을 올려주세요.\n\n올려주신 사진과 결과를 융합하여 **나만의 메이플 AI 캐릭터**를 생성합니다!")
     
     uploaded_file = st.file_uploader("사진을 업로드하세요.", type=["png", "jpg", "jpeg"])
     
@@ -203,7 +249,7 @@ elif st.session_state.page == 'photo':
         st.session_state.user_photo = uploaded_file
         st.image(uploaded_file, caption="업로드 완료! 분석을 시작합니다.", width=250)
         
-        if st.button("AI 캐릭터 실시간 생성 및 결과 보기", type="primary", use_container_width=True):
+        if st.button("결과 보기", type="primary", use_container_width=True):
             st.session_state.page = 'result'
             st.rerun()
 
@@ -221,36 +267,53 @@ elif st.session_state.page == 'result':
     }
     match = "에스트로겐 + 세로토닌형" if t_v_e == "테스토스테론" else "테스토스테론 + 도파민형"
     
-    st.markdown(f"##  당신의 유형: {final_type}")
-    st.markdown(f"** 왜 이 유형으로 분류되었나요?**\n\n당신은 공감과 이성 사이에서 '{t_v_e}'의 특징이 강하게 나타나며, 연애의 자극과 안정 사이에서 '{d_v_s}'의 성향을 보였습니다.")
-    st.markdown(f"** 나의 연애 스타일 특징**\n- **{t_v_e}**: {desc[t_v_e]}\n- **{d_v_s}**: {desc[d_v_s]}")
-    st.markdown(f"** 추천 궁합 파트너:** **{match}**\n\n서로의 부족한 점을 보완해 주며 긍정적인 화학 작용을 일으킬 수 있는 최고의 궁합입니다.")
+    st.markdown(f"## 당신의 유형\n# {final_type}")
+    st.markdown(f"**왜 이 유형으로 분류되었나요?**\n당신은 공감과 이성 사이에서 '{t_v_e}'의 특징이 강하게 나타나며, 연애의 자극과 안정 사이에서 '{d_v_s}'의 성향을 보였습니다.")
+    st.markdown(f"**나의 연애 스타일 특징**\n<br>- **{t_v_e}**: {desc[t_v_e]}<br>- **{d_v_s}**: {desc[d_v_s]}", unsafe_allow_html=True)
+    st.markdown(f"**추천 궁합 파트너: {match}**\n서로의 부족한 점을 보완해 주며 긍정적인 화학 작용을 일으킬 수 있는 최고의 궁합입니다.")
     
     st.divider()
     
-    # 두 개의 그래프 분리
-    st.markdown("### 내 안의 호르몬 우세 비율")
-    col1, col2 = st.columns(2)
-    with col1:
-        st.markdown("**1. 이성 vs 공감**")
-        st.bar_chart(pd.DataFrame({"점수": [scores["T"], scores["E"]]}, index=["테스토스테론", "에스트로겐"]))
-    with col2:
-        st.markdown("**2. 자극 vs 안정**")
-        st.bar_chart(pd.DataFrame({"점수": [scores["D"], scores["S"]]}, index=["도파민", "세로토닌"]))
+    st.markdown("### 📊 내 안의 호르몬 우세 비율")
+    
+    te_total = scores["T"] + scores["E"]
+    if te_total == 0: te_total = 1 
+    t_pct = int((scores["T"] / te_total) * 100)
+    e_pct = 100 - t_pct
+
+    ds_total = scores["D"] + scores["S"]
+    if ds_total == 0: ds_total = 1
+    d_pct = int((scores["D"] / ds_total) * 100)
+    s_pct = 100 - d_pct
+
+    st.markdown("**1. 이성 vs 공감**")
+    st.markdown(f"""
+    <div style="display: flex; height: 35px; width: 100%; border-radius: 10px; overflow: hidden; margin-bottom: 25px; box-shadow: 1px 1px 5px rgba(0,0,0,0.2);">
+        <div style="width: {t_pct}%; background-color: #4A90E2; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 14px;">테스토스테론 {t_pct}%</div>
+        <div style="width: {e_pct}%; background-color: #F5A623; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 14px;">에스트로겐 {e_pct}%</div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("**2. 자극 vs 안정**")
+    st.markdown(f"""
+    <div style="display: flex; height: 35px; width: 100%; border-radius: 10px; overflow: hidden; margin-bottom: 25px; box-shadow: 1px 1px 5px rgba(0,0,0,0.2);">
+        <div style="width: {d_pct}%; background-color: #50E3C2; display: flex; align-items: center; justify-content: center; color: #333; font-weight: bold; font-size: 14px;">도파민 {d_pct}%</div>
+        <div style="width: {s_pct}%; background-color: #D0021B; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 14px;">세로토닌 {s_pct}%</div>
+    </div>
+    """, unsafe_allow_html=True)
     
     st.divider()
     
-    # 🚨 AI 캐릭터 실제 생성 호출
     st.markdown("### 🧚 나만의 AI 메이플 캐릭터")
     with st.spinner('생성형 AI가 사진을 분석하여 캐릭터를 그리고 있습니다. (약 10~20초 소요) 🎨'):
         ai_result = get_maple_character_from_ai(st.session_state.user_photo, final_type)
         
         if ai_result == "API_KEY_MISSING":
-            st.error("🚨 오류: Replicate API 키가 설정되지 않았습니다. 코드 맨 위 `os.environ[\"REPLICATE_API_TOKEN\"]`에 발급받은 키를 넣어주세요.")
+            st.error("🚨 오류: Replicate API 키가 설정되지 않았습니다.")
         elif ai_result is not None:
             st.image(ai_result, caption="당신의 특징이 담긴 생성형 AI 메이플 캐릭터!", width=300)
         else:
-            st.error("🚨 이미지 생성에 실패했습니다. 올바른 사진 형식인지, API 크레딧이 남아있는지 확인해주세요.")
+            st.error("🚨 이미지 생성에 실패했습니다.")
     
     if st.button("처음부터 다시하기 🔄", use_container_width=True):
         st.session_state.page = 'intro'
