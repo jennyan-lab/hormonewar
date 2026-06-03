@@ -49,13 +49,20 @@ def set_background_and_font(image_filename, font_filename):
         text-align: center !important; 
     }}
 
-    /* 텍스트가 하얀색 배경 안에서만 나오도록 위아래 여백 강제 설정 */
+    /* ⭐️ 1. 본문 내용을 좀 더 위로 올리기 (상단 여백 줄임) ⭐️ */
     .block-container {{
-        padding-top: 25vh !important; 
+        padding-top: 18vh !important; /* 기존 25vh에서 18vh로 줄여 본문을 위로 올림 */
         padding-bottom: 18vh !important; 
     }}
 
-    /* ⭐️ 1. 질문 선택지(라디오 버튼) 왼쪽 정렬 ⭐️ */
+    /* ⭐️ 2. 모든 페이지에 연한 핑크색 반투명 배경 박스 깔기 ⭐️ */
+    div.block-container > div:first-child > div[data-testid="stVerticalBlock"] {{
+        background-color: rgba(255, 235, 240, 0.9) !important; 
+        padding: 30px !important;
+        border-radius: 20px !important;
+    }}
+
+    /* 질문 선택지(라디오 버튼) 왼쪽 정렬 */
     .stRadio > div[role="radiogroup"] {{
         display: flex;
         flex-direction: column;
@@ -64,14 +71,14 @@ def set_background_and_font(image_filename, font_filename):
     }}
     .stRadio > div[role="radiogroup"] > label {{
         width: 100%;
-        background-color: rgba(255, 255, 255, 0.6); /* 뒷배경 박스 */
-        padding: 15px 20px !important; /* 왼쪽 여백 추가 */
+        background-color: rgba(255, 255, 255, 0.6); 
+        padding: 15px 20px !important; 
         border-radius: 15px;
         margin-bottom: 5px !important;
-        justify-content: flex-start !important; /* 🚨 가로 기준 왼쪽 정렬 */
+        justify-content: flex-start !important; 
     }}
     .stRadio > div[role="radiogroup"] > label div {{
-        text-align: left !important; /* 다중 줄 텍스트도 왼쪽 정렬 */
+        text-align: left !important; 
     }}
     .stRadio > label {{ display: none; }} 
 
@@ -93,10 +100,10 @@ def set_background_and_font(image_filename, font_filename):
         color: #000000 !important;
     }}
 
-    /* ⭐️ 2. 하단 버튼 위치 '대화 입력창' 정중앙으로 올림 ⭐️ */
+    /* ⭐️ 3. 하단 버튼 위치를 조금 더 위로 올림 ⭐️ */
     div.stButton {{
         position: fixed !important;
-        bottom: 5.5vh !important; /* 🚨 기존 3vh에서 5.5vh로 높여서 박스 중앙에 맞춤 */
+        bottom: 7.5vh !important; /* 기존 5.5vh에서 7.5vh로 높여 버튼 위치를 올림 */
         left: 18vw !important; 
         width: 78vw !important; 
         z-index: 9999 !important; 
@@ -187,21 +194,6 @@ def get_maple_character_from_ai(user_image_file, final_type):
         print(f"API 오류 발생: {e}")
         return None
 
-# ==========================================
-# ⭐️ 스크롤이 필요한 창(photo, result) 전용 핑크 박스 CSS 추가 ⭐️
-# ==========================================
-if st.session_state.page in ['photo', 'result']:
-    st.markdown("""
-    <style>
-    /* 메인 콘텐츠 영역에만 연한 핑크색 반투명 배경 깔기 */
-    div.block-container > div:first-child > div[data-testid="stVerticalBlock"] {
-        background-color: rgba(255, 235, 240, 0.9) !important; 
-        padding: 30px !important;
-        border-radius: 20px !important;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
 
 # ==========================================
 # 6. 화면 라우팅
@@ -290,34 +282,4 @@ elif st.session_state.page == 'result':
     st.markdown(f"""
     <div style="display: flex; height: 35px; width: 100%; border-radius: 10px; overflow: hidden; margin-bottom: 25px; box-shadow: 1px 1px 5px rgba(0,0,0,0.2);">
         <div style="width: {t_pct}%; background-color: #4A90E2; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 14px;">테스토스테론 {t_pct}%</div>
-        <div style="width: {e_pct}%; background-color: #F5A623; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 14px;">에스트로겐 {e_pct}%</div>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    st.markdown("**2. 자극 vs 안정**")
-    st.markdown(f"""
-    <div style="display: flex; height: 35px; width: 100%; border-radius: 10px; overflow: hidden; margin-bottom: 25px; box-shadow: 1px 1px 5px rgba(0,0,0,0.2);">
-        <div style="width: {d_pct}%; background-color: #50E3C2; display: flex; align-items: center; justify-content: center; color: #333; font-weight: bold; font-size: 14px;">도파민 {d_pct}%</div>
-        <div style="width: {s_pct}%; background-color: #D0021B; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 14px;">세로토닌 {s_pct}%</div>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    st.divider()
-    
-    st.markdown("### 🧚 나만의 AI 메이플 캐릭터")
-    with st.spinner('생성형 AI가 사진을 분석하여 캐릭터를 그리고 있습니다. (약 10~20초 소요) 🎨'):
-        ai_result = get_maple_character_from_ai(st.session_state.user_photo, final_type)
-        
-        if ai_result == "API_KEY_MISSING":
-            st.error("🚨 오류: Replicate API 키가 설정되지 않았습니다.")
-        elif ai_result is not None:
-            st.image(ai_result, caption="당신의 특징이 담긴 생성형 AI 메이플 캐릭터!", width=300)
-        else:
-            st.error("🚨 이미지 생성에 실패했습니다.")
-    
-    if st.button("처음부터 다시하기 🔄", use_container_width=True):
-        st.session_state.page = 'intro'
-        st.session_state.idx = 0
-        st.session_state.scores = {"T": 0, "E": 0, "S": 0, "D": 0}
-        st.session_state.user_photo = None
-        st.rerun()
+        <div style="width: {e_pct}%; background-color: #F5A623; display: flex; align-
