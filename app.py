@@ -129,7 +129,7 @@ def set_background_and_font(image_filename, font_filename):
     """
     st.markdown(css, unsafe_allow_html=True)
 
-set_background_and_font('background.jpg', 'x12y12pxMaruMinyaHangul.ttf')
+set_background_and_font('background3.jpg', 'x12y12pxMaruMinyaHangul.ttf')
 
 # ==========================================
 # 3. 질문 데이터셋 구성 
