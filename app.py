@@ -16,7 +16,21 @@ st.set_page_config(page_title="연애도 결국 호르몬빨? 내 연애 유형 
 os.environ["REPLICATE_API_TOKEN"] = "r8_YWRmG7YPCMcmjrlwFj0bARuc8khOipx3AA6bN"
 
 # ==========================================
-# 2. 배경, 폰트 및 ⭐️메신저 레이아웃 강제 맞춤⭐️
+# 2. 프로그램 상태 초기화 (배경 설정 전 위치해야 함)
+# ==========================================
+if 'page' not in st.session_state:
+    st.session_state.page = 'intro'
+if 'idx' not in st.session_state:
+    st.session_state.idx = 0
+if 'scores' not in st.session_state:
+    st.session_state.scores = {"T": 0, "E": 0, "S": 0, "D": 0}
+if 'history' not in st.session_state:
+    st.session_state.history = [] # 이전 문항으로 갈 때 점수 차감을 위한 기록
+if 'user_photo' not in st.session_state:
+    st.session_state.user_photo = None
+
+# ==========================================
+# 3. 배경, 폰트 및 디자인 설정 함수
 # ==========================================
 def set_background_and_font(image_filename, font_filename):
     current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -49,20 +63,17 @@ def set_background_and_font(image_filename, font_filename):
         text-align: center !important; 
     }}
 
-    /* ⭐️ 1. 본문 내용을 좀 더 위로 올리기 (상단 여백 줄임) ⭐️ */
     .block-container {{
-        padding-top: 18vh !important; /* 기존 25vh에서 18vh로 줄여 본문을 위로 올림 */
+        padding-top: 18vh !important; 
         padding-bottom: 18vh !important; 
     }}
 
-    /* ⭐️ 2. 모든 페이지에 연한 핑크색 반투명 배경 박스 깔기 ⭐️ */
     div.block-container > div:first-child > div[data-testid="stVerticalBlock"] {{
         background-color: rgba(255, 235, 240, 0.9) !important; 
         padding: 30px !important;
         border-radius: 20px !important;
     }}
 
-    /* 질문 선택지(라디오 버튼) 왼쪽 정렬 */
     .stRadio > div[role="radiogroup"] {{
         display: flex;
         flex-direction: column;
@@ -82,7 +93,6 @@ def set_background_and_font(image_filename, font_filename):
     }}
     .stRadio > label {{ display: none; }} 
 
-    /* 배경 이미지 꽉 채우기 */
     [data-testid="stAppViewContainer"] {{
         background-image: url("data:image/jpeg;base64,{img_encoded}");
         background-size: 100% 100%; 
@@ -100,15 +110,27 @@ def set_background_and_font(image_filename, font_filename):
         color: #000000 !important;
     }}
 
-    /* ⭐️ 3. 하단 버튼 위치를 조금 더 위로 올림 ⭐️ */
+    /* 하단 버튼 기본 위치 */
     div.stButton {{
         position: fixed !important;
-        bottom: 7.5vh !important; /* 기존 5.5vh에서 7.5vh로 높여 버튼 위치를 올림 */
+        bottom: 7.5vh !important; 
         left: 18vw !important; 
         width: 78vw !important; 
         z-index: 9999 !important; 
     }}
     
+    /* ⭐️ 버튼이 2개(컬럼)일 때 나란히 배치되도록 너비 분할 ⭐️ */
+    div[data-testid="column"]:nth-child(1) div.stButton,
+    div[data-testid="stColumn"]:nth-child(1) div.stButton {{
+        left: 18vw !important;
+        width: 38vw !important;
+    }}
+    div[data-testid="column"]:nth-child(2) div.stButton,
+    div[data-testid="stColumn"]:nth-child(2) div.stButton {{
+        left: 58vw !important;
+        width: 38vw !important;
+    }}
+
     div.stButton > button {{
         width: 100% !important;
         height: 8vh !important; 
@@ -129,10 +151,16 @@ def set_background_and_font(image_filename, font_filename):
     """
     st.markdown(css, unsafe_allow_html=True)
 
-set_background_and_font('background3.jpg', 'x12y12pxMaruMinyaHangul.ttf')
+# 💡 페이지별 배경 이미지 동적 적용 💡
+if st.session_state.page in ['photo', 'result']:
+    current_bg = 'background.jpg'
+else:
+    current_bg = 'background3.jpg'
+
+set_background_and_font(current_bg, 'x12y12pxMaruMinyaHangul.ttf')
 
 # ==========================================
-# 3. 질문 데이터셋 구성 
+# 4. 질문 데이터셋 구성 
 # ==========================================
 questions = [
     {"q": "1. 데이트 중 연인이 \"나 요즘 회사(학교) 일 때문에 너무 스트레스 받아...\"라고 할 때 나의 반응은?", "opts": ["\"헐, 무슨 일 있었어? 마음 아프다... 맛있는 거 먹으러 가자.\"", "\"그 사람(일)이 왜 그런대? 일단 이번 주말은 아무 생각 말고 푹 쉬어.\""], "types": ["E", "T"]},
@@ -152,17 +180,8 @@ questions = [
 ]
 
 # ==========================================
-# 4. 프로그램 상태 초기화
+# 5. 생성형 AI 캐릭터 변환 함수
 # ==========================================
-if 'page' not in st.session_state:
-    st.session_state.page = 'intro'
-if 'idx' not in st.session_state:
-    st.session_state.idx = 0
-if 'scores' not in st.session_state:
-    st.session_state.scores = {"T": 0, "E": 0, "S": 0, "D": 0}
-if 'user_photo' not in st.session_state:
-    st.session_state.user_photo = None
-
 def get_maple_character_from_ai(user_image_file, final_type):
     try:
         api_key = os.environ.get("REPLICATE_API_TOKEN")
@@ -194,7 +213,6 @@ def get_maple_character_from_ai(user_image_file, final_type):
         print(f"API 오류 발생: {e}")
         return None
 
-
 # ==========================================
 # 6. 화면 라우팅
 # ==========================================
@@ -217,12 +235,29 @@ elif st.session_state.page == 'quiz':
     
     selected_option = st.radio("선택지", options=q_data['opts'], index=None, key=f"radio_{q_idx}", label_visibility="collapsed")
     
-    if st.button("다음 문항으로 ➔", type="primary", use_container_width=True):
+    # 💡 2개 버튼(이전/다음) 나란히 배치 💡
+    col1, col2 = st.columns(2)
+    with col1:
+        prev_clicked = st.button("⬅️ 이전 문항", use_container_width=True)
+    with col2:
+        next_clicked = st.button("다음 문항 ➔", use_container_width=True)
+        
+    if prev_clicked:
+        if st.session_state.idx > 0:
+            last_hormone = st.session_state.history.pop() # 이전 점수 차감
+            st.session_state.scores[last_hormone] -= 1
+            st.session_state.idx -= 1
+        else:
+            st.session_state.page = 'intro'
+        st.rerun()
+        
+    if next_clicked:
         if selected_option is None:
             st.error("⚠️ 답변을 선택해주세요!")
         else:
             sel_idx = q_data['opts'].index(selected_option)
             hormone = q_data['types'][sel_idx]
+            st.session_state.history.append(hormone) # 선택 기록 저장
             st.session_state.scores[hormone] += 1
             
             st.session_state.idx += 1
@@ -236,12 +271,26 @@ elif st.session_state.page == 'photo':
     st.markdown("마지막으로 본인의 사진을 올려주세요.\n\n올려주신 사진과 결과를 융합하여 **나만의 메이플 AI 캐릭터**를 생성합니다!")
     
     uploaded_file = st.file_uploader("사진을 업로드하세요.", type=["png", "jpg", "jpeg"])
-    
     if uploaded_file is not None:
-        st.session_state.user_photo = uploaded_file
-        st.image(uploaded_file, caption="업로드 완료! 분석을 시작합니다.", width=250)
+        st.image(uploaded_file, caption="업로드 완료! 분석을 준비합니다.", width=250)
         
-        if st.button("결과 보기", type="primary", use_container_width=True):
+    # 💡 2개 버튼(사진 생략/결과 보기) 나란히 배치 💡
+    col1, col2 = st.columns(2)
+    with col1:
+        skip_clicked = st.button("사진 넣지 않기", use_container_width=True)
+    with col2:
+        result_clicked = st.button("결과 보기 ➔", use_container_width=True)
+        
+    if skip_clicked:
+        st.session_state.user_photo = None # 사진 생략
+        st.session_state.page = 'result'
+        st.rerun()
+        
+    if result_clicked:
+        if uploaded_file is None:
+            st.error("⚠️ 사진을 업로드하거나 '사진 넣지 않기' 버튼을 눌러주세요.")
+        else:
+            st.session_state.user_photo = uploaded_file
             st.session_state.page = 'result'
             st.rerun()
 
@@ -297,19 +346,24 @@ elif st.session_state.page == 'result':
     st.divider()
     
     st.markdown("### 🧚 나만의 AI 메이플 캐릭터")
-    with st.spinner('생성형 AI가 사진을 분석하여 캐릭터를 그리고 있습니다. (약 10~20초 소요) 🎨'):
-        ai_result = get_maple_character_from_ai(st.session_state.user_photo, final_type)
-        
-        if ai_result == "API_KEY_MISSING":
-            st.error("🚨 오류: Replicate API 키가 설정되지 않았습니다.")
-        elif ai_result is not None:
-            st.image(ai_result, caption="당신의 특징이 담긴 생성형 AI 메이플 캐릭터!", width=300)
-        else:
-            st.error("🚨 이미지 생성에 실패했습니다.")
+    # 💡 사진 여부에 따른 조건부 렌더링 💡
+    if st.session_state.user_photo is not None:
+        with st.spinner('생성형 AI가 사진을 분석하여 캐릭터를 그리고 있습니다. (약 10~20초 소요) 🎨'):
+            ai_result = get_maple_character_from_ai(st.session_state.user_photo, final_type)
+            
+            if ai_result == "API_KEY_MISSING":
+                st.error("🚨 오류: Replicate API 키가 설정되지 않았습니다.")
+            elif ai_result is not None:
+                st.image(ai_result, caption="당신의 특징이 담긴 생성형 AI 메이플 캐릭터!", width=300)
+            else:
+                st.error("🚨 이미지 생성에 실패했습니다.")
+    else:
+        st.info("💡 사진을 넣지 않아 AI 캐릭터 생성이 생략되었습니다.")
     
     if st.button("처음부터 다시하기 🔄", use_container_width=True):
         st.session_state.page = 'intro'
         st.session_state.idx = 0
         st.session_state.scores = {"T": 0, "E": 0, "S": 0, "D": 0}
+        st.session_state.history = []
         st.session_state.user_photo = None
         st.rerun()
