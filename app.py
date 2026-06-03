@@ -80,7 +80,7 @@ def set_background_and_font(image_filename, font_filename):
 # ==========================================
 # 💡 위에서 만든 함수 실행 (배경과 폰트 적용)
 # ==========================================
-set_background_and_font('background.jpg', 'x12y12pxMaruMinyaHangul.ttf')
+set_background_and_font('background1.jpg', 'x12y12pxMaruMinyaHangul.ttf')
 
 # ==========================================
 # 3. 질문 데이터셋 구성 
