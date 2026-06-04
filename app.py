@@ -383,7 +383,7 @@ elif st.session_state.page == 'result':
     # 1. 가운데 정렬 및 글자크기 변수가 적용된 HTML 블록 렌더링
     st.markdown(f"""
     <div style="text-align: center;">
-        <div style="font-size: {font_size_label}; font-weight: bold; margin-bottom: 5px;">당신의 연애 유형</div>
+        <div style="font-size: {font_size_label}; font-weight: bold; margin-bottom: 5px;">당신의 연애 유형은?</div>
         <div style="font-size: {font_size_title}; font-weight: bold; margin-bottom: 5px; color: #D0021B;">{large_title}</div>
         <div style="font-size: {font_size_subtitle}; font-weight: bold; margin-bottom: 25px;">({small_desc}형)</div>
         <div style="font-size: {font_size_desc}; line-height: 1.6; white-space: pre-wrap; margin-bottom: 25px;">{style_text}</div>
