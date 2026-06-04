@@ -152,7 +152,7 @@ def set_background_and_font(image_filename, font_filename):
 
 # 페이지별 배경 이미지 동적 적용
 if st.session_state.page in ['photo', 'result']:
-    current_bg = 'background.png'
+    current_bg = 'background.jpg'
 else:
     current_bg = 'background3.jpg'
 
@@ -349,7 +349,7 @@ elif st.session_state.page == 'result':
 다만 감정을 표현하는 데 서툴러 상대방이 사랑받고 있다는 확신을 얻지 못할 수도 있습니다. 가끔은 마음을 말로 표현하는 연습도 필요합니다."""
         match = "에겐 + 도파민형 (플러팅 천재형)"
 
-    st.markdown("## 당신의 연애 유형")
+    st.markdown("##  당신의 연애 유형")
     st.markdown(f"# {large_title}") 
     st.markdown(f"#### ({small_desc}형)") 
     st.write("")
@@ -390,7 +390,7 @@ elif st.session_state.page == 'result':
     
     st.divider()
     
-    st.markdown("### 🧚 나만의 AI 메이플 캐릭터")
+    st.markdown("### 나만의 메이플 캐릭터")
     if st.session_state.user_photo is not None:
         with st.spinner('생성형 AI가 사진을 분석하여 캐릭터를 그리고 있습니다. (약 10~20초 소요) 🎨'):
             ai_result = get_maple_character_from_ai(st.session_state.user_photo, small_desc)
