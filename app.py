@@ -4,12 +4,12 @@ import base64
 import os
 import pandas as pd
 import replicate
-
+3
 # ==========================================
 # 0. 화면 기본 설정
 # ==========================================
 # ⭐️ 브라우저 탭 제목에 요청하신 줄바꿈(\n)을 확실하게 반영했습니다.
-st.set_page_config(page_title="연애도 결국 호르몬빨? 내 연애\n유형테스트", layout="centered")
+st.set_page_config(page_title="연애도 결국 호르몬빨? 내 연애 유형\n테스트", layout="centered")
 
 # ==========================================
 # 1. API 키 설정 (필수!)
