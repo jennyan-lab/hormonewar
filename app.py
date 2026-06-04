@@ -1,3 +1,12 @@
+요청하신 내용에 맞추어 다음 세 가지를 중점적으로 수정했습니다.
+
+1. **'처음부터 다시하기' 버튼 스크롤화:** 결과 페이지(`result`)일 때만 버튼의 고정(`position: fixed`) 속성을 해제하고, 화면 흐름에 따라 맨 끝에 위치하도록 CSS를 조건부로 분리했습니다. (기존 배경 이미지에 버튼 그림이 포함되어 있을 것을 대비해, 스크롤되는 버튼이 잘 보이도록 박스 배경색과 테두리 스타일도 추가했습니다.)
+2. **글씨 가운데 정렬:** 결과 페이지의 모든 텍스트 요소를 `<div style="text-align: center;">`로 감싸 완벽한 가운데 정렬을 적용했습니다.
+3. **글자 크기 조절 변수화:** 결과 페이지 상단에 폰트 사이즈 변수를 모아두어, 추후 코드 상단에서 픽셀(`px`) 값만 바꾸면 쉽게 전체 크기를 제어할 수 있도록 수정했습니다.
+
+아래 전체 코드를 복사해서 사용하시면 됩니다.
+
+```python
 import streamlit as st
 import time
 import base64
@@ -8,7 +17,6 @@ import replicate
 # ==========================================
 # 0. 화면 기본 설정
 # ==========================================
-# ⭐️ '내 연애 유형' 뒤에 줄바꿈(\n)이 오도록 수정했습니다.
 st.set_page_config(page_title="연애도 결국 호르몬빨? 내 연애 유형\n테스트", layout="centered")
 
 # ==========================================
@@ -33,7 +41,7 @@ if 'user_photo' not in st.session_state:
 # ==========================================
 # 3. 배경, 폰트 및 메신저 레이아웃 강제 맞춤
 # ==========================================
-def set_background_and_font(image_filename, font_filename):
+def set_background_and_font(image_filename, font_filename, current_page):
     current_dir = os.path.dirname(os.path.abspath(__file__))
     image_path = os.path.join(current_dir, image_filename)
     font_path = os.path.join(current_dir, font_filename)
@@ -52,6 +60,50 @@ def set_background_and_font(image_filename, font_filename):
         st.error(f"⚠️ 폰트 파일을 찾을 수 없습니다: {font_filename}")
         return
         
+    # 결과 페이지와 그 외 페이지의 버튼 CSS를 다르게 적용
+    if current_page != 'result':
+        button_css = """
+        div.stButton {
+            position: fixed !important;
+            bottom: 7.5vh !important; 
+            left: 18vw !important; 
+            width: 78vw !important; 
+            z-index: 9999 !important; 
+        }
+        div[data-testid="column"]:nth-child(1) div.stButton,
+        div[data-testid="stColumn"]:nth-child(1) div.stButton {
+            left: 18vw !important;
+            width: 38vw !important;
+        }
+        div[data-testid="column"]:nth-child(2) div.stButton,
+        div[data-testid="stColumn"]:nth-child(2) div.stButton {
+            left: 58vw !important;
+            width: 38vw !important;
+        }
+        div.stButton > button {
+            background-color: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+        div.stButton > button:hover { color: #777777 !important; }
+        """
+    else:
+        button_css = """
+        div.stButton {
+            position: relative !important; /* 고정 해제, 스크롤형으로 변경 */
+            width: 100% !important;
+            margin-top: 40px !important;
+            margin-bottom: 20px !important;
+        }
+        div.stButton > button {
+            background-color: rgba(255, 235, 240, 1.0) !important; /* 스크롤 버튼이 잘 보이도록 색상 추가 */
+            border-radius: 15px !important;
+            border: 2px solid #ffccd5 !important;
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.1) !important;
+        }
+        div.stButton > button:hover { background-color: rgba(255, 210, 220, 1.0) !important; }
+        """
+
     css = f"""
     <style>
     @font-face {{
@@ -111,31 +163,11 @@ def set_background_and_font(image_filename, font_filename):
         color: #000000 !important;
     }}
 
-    div.stButton {{
-        position: fixed !important;
-        bottom: 7.5vh !important; 
-        left: 18vw !important; 
-        width: 78vw !important; 
-        z-index: 9999 !important; 
-    }}
-    
-    div[data-testid="column"]:nth-child(1) div.stButton,
-    div[data-testid="stColumn"]:nth-child(1) div.stButton {{
-        left: 18vw !important;
-        width: 38vw !important;
-    }}
-    div[data-testid="column"]:nth-child(2) div.stButton,
-    div[data-testid="stColumn"]:nth-child(2) div.stButton {{
-        left: 58vw !important;
-        width: 38vw !important;
-    }}
+    {button_css}
 
     div.stButton > button {{
         width: 100% !important;
         height: 8vh !important; 
-        background-color: transparent !important;
-        border: none !important;
-        box-shadow: none !important;
         color: #000000 !important;
         font-weight: bold !important;
         font-size: 20px !important;
@@ -144,19 +176,18 @@ def set_background_and_font(image_filename, font_filename):
         justify-content: center;
         align-items: center;
     }}
-    div.stButton > button:hover {{ color: #777777 !important; }}
     div.stButton > button:active, div.stButton > button:focus {{ color: #000000 !important; }}
     </style>
     """
     st.markdown(css, unsafe_allow_html=True)
 
-# 페이지별 배경 이미지 동적 적용
+# 페이지별 배경 이미지 동적 적용 및 폰트 세팅
 if st.session_state.page in ['photo', 'result']:
     current_bg = 'background.jpg'
 else:
     current_bg = 'background3.jpg'
 
-set_background_and_font(current_bg, 'x12y12pxMaruMinyaHangul.ttf')
+set_background_and_font(current_bg, 'x12y12pxMaruMinyaHangul.ttf', st.session_state.page)
 
 # ==========================================
 # 4. 질문 데이터셋 구성 
@@ -217,7 +248,6 @@ def get_maple_character_from_ai(user_image_file, final_type):
 # ==========================================
 # [화면 1] 인트로
 if st.session_state.page == 'intro':
-    # ⭐️ 화면의 큰 제목도 '내 연애 유형' 뒤에서 줄바꿈(<br>)되도록 수정했습니다.
     st.markdown("""
     <div style="font-size: 30px; font-weight: bold; margin-bottom: 10px;">연애도 결국 호르몬빨?</div>
     <div style="font-size: 40px; font-weight: bold; margin-bottom: 30px;">내 연애 유형<br>테스트</div>
@@ -349,18 +379,35 @@ elif st.session_state.page == 'result':
 다만 감정을 표현하는 데 서툴러 상대방이 사랑받고 있다는 확신을 얻지 못할 수도 있습니다. 가끔은 마음을 말로 표현하는 연습도 필요합니다."""
         match = "에겐 + 도파민형 (플러팅 천재형)"
 
-    st.markdown("##  당신의 연애 유형")
-    st.markdown(f"# {large_title}") 
-    st.markdown(f"#### ({small_desc}형)") 
-    st.write("")
-    
-    st.markdown(style_text)
-    st.write("")
-    st.markdown(f"**추천 궁합 파트너:** **{match}**")
+    # ==========================================
+    # ★ 결과 페이지 글자 크기 설정 (여기서 쉽게 조절하세요)
+    # ==========================================
+    font_size_label    = "20px"  # '당신의 연애 유형' 글자 크기
+    font_size_title    = "35px"  # '메인 타이틀' (예: 감성로맨티스트형) 글자 크기
+    font_size_subtitle = "18px"  # '서브 타이틀' (예: 에겐 & 도파민형) 글자 크기
+    font_size_desc     = "16px"  # 결과 본문 설명 글자 크기
+    font_size_match    = "18px"  # 추천 궁합 파트너 글자 크기
+    font_size_section  = "22px"  # 섹션 제목 (호르몬 비율, 메이플 캐릭터) 글자 크기
+
+    # 1. 가운데 정렬 및 글자크기 변수가 적용된 HTML 블록 렌더링
+    st.markdown(f"""
+    <div style="text-align: center;">
+        <div style="font-size: {font_size_label}; font-weight: bold; margin-bottom: 5px;">당신의 연애 유형</div>
+        <div style="font-size: {font_size_title}; font-weight: bold; margin-bottom: 5px; color: #D0021B;">{large_title}</div>
+        <div style="font-size: {font_size_subtitle}; font-weight: bold; margin-bottom: 25px;">({small_desc}형)</div>
+        <div style="font-size: {font_size_desc}; line-height: 1.6; white-space: pre-wrap; margin-bottom: 25px;">{style_text}</div>
+        <div style="font-size: {font_size_match}; font-weight: bold; margin-bottom: 30px; color: #4A90E2;">추천 궁합 파트너: {match}</div>
+    </div>
+    """, unsafe_allow_html=True)
     
     st.divider()
     
-    st.markdown("### 내 안의 호르몬 비율")
+    # 2. 내 안의 호르몬 비율 섹션 (가운데 정렬)
+    st.markdown(f"""
+    <div style="text-align: center;">
+        <div style="font-size: {font_size_section}; font-weight: bold; margin-bottom: 15px;">내 안의 호르몬 비율</div>
+    </div>
+    """, unsafe_allow_html=True)
     
     te_total = scores["T"] + scores["E"]
     if te_total == 0: te_total = 1 
@@ -372,7 +419,7 @@ elif st.session_state.page == 'result':
     d_pct = int((scores["D"] / ds_total) * 100)
     s_pct = 100 - d_pct
 
-    st.markdown("**1. 이성(테토) vs 공감(에겐)**")
+    st.markdown('<div style="text-align: center; font-weight: bold; margin-bottom: 5px;">1. 이성(테토) vs 공감(에겐)</div>', unsafe_allow_html=True)
     st.markdown(f"""
     <div style="display: flex; height: 35px; width: 100%; border-radius: 10px; overflow: hidden; margin-bottom: 25px; box-shadow: 1px 1px 5px rgba(0,0,0,0.2);">
         <div style="width: {t_pct}%; background-color: #4A90E2; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 14px;">테스토스테론 {t_pct}%</div>
@@ -380,7 +427,7 @@ elif st.session_state.page == 'result':
     </div>
     """, unsafe_allow_html=True)
     
-    st.markdown("**2. 자극(도파민) vs 안정(세로토닌)**")
+    st.markdown('<div style="text-align: center; font-weight: bold; margin-bottom: 5px;">2. 자극(도파민) vs 안정(세로토닌)</div>', unsafe_allow_html=True)
     st.markdown(f"""
     <div style="display: flex; height: 35px; width: 100%; border-radius: 10px; overflow: hidden; margin-bottom: 25px; box-shadow: 1px 1px 5px rgba(0,0,0,0.2);">
         <div style="width: {d_pct}%; background-color: #50E3C2; display: flex; align-items: center; justify-content: center; color: #333; font-weight: bold; font-size: 14px;">도파민 {d_pct}%</div>
@@ -390,7 +437,13 @@ elif st.session_state.page == 'result':
     
     st.divider()
     
-    st.markdown("### 나만의 메이플 캐릭터")
+    # 3. 나만의 메이플 캐릭터 섹션 (가운데 정렬)
+    st.markdown(f"""
+    <div style="text-align: center;">
+        <div style="font-size: {font_size_section}; font-weight: bold; margin-bottom: 15px;">나만의 메이플 캐릭터</div>
+    </div>
+    """, unsafe_allow_html=True)
+
     if st.session_state.user_photo is not None:
         with st.spinner('생성형 AI가 사진을 분석하여 캐릭터를 그리고 있습니다. (약 10~20초 소요) 🎨'):
             ai_result = get_maple_character_from_ai(st.session_state.user_photo, small_desc)
@@ -404,6 +457,7 @@ elif st.session_state.page == 'result':
     else:
         st.info("💡 사진을 넣지 않아 AI 캐릭터 생성이 생략되었습니다.")
     
+    # 버튼 렌더링 (CSS에 의해 맨 하단으로 스크롤되며 배치됩니다)
     if st.button("처음부터 다시하기 🔄", use_container_width=True):
         st.session_state.page = 'intro'
         st.session_state.idx = 0
