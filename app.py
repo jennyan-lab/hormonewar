@@ -4,7 +4,7 @@ import base64
 import os
 import pandas as pd
 import replicate
-3
+
 # ==========================================
 # 0. 화면 기본 설정
 # ==========================================
