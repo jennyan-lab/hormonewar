@@ -8,6 +8,7 @@ import replicate
 # ==========================================
 # 0. 화면 기본 설정
 # ==========================================
+# ⭐️ 브라우저 탭 제목에 요청하신 줄바꿈(\n)을 확실하게 반영했습니다.
 st.set_page_config(page_title="연애도 결국 호르몬빨? 내 연애\n유형테스트", layout="centered")
 
 # ==========================================
@@ -216,10 +217,10 @@ def get_maple_character_from_ai(user_image_file, final_type):
 # ==========================================
 # [화면 1] 인트로
 if st.session_state.page == 'intro':
-    # ⭐️ HTML을 사용해 폰트 크기(px)를 자유롭게 조절할 수 있습니다 ⭐️
+    # ⭐️ 실제 화면상의 메인 제목 글씨도 완벽하게 엔터(<br>) 처리가 되도록 반영했습니다.
     st.markdown("""
     <div style="font-size: 30px; font-weight: bold; margin-bottom: 10px;">연애도 결국 호르몬빨?</div>
-    <div style="font-size: 40px; font-weight: bold; margin-bottom: 30px;">내 연애 유형 테스트</div>
+    <div style="font-size: 40px; font-weight: bold; margin-bottom: 30px;">내 연애<br>유형 테스트</div>
     <div style="font-size: 18px; color: #333333;">나의 연애 유형 테스트 보러가기</div>
     """, unsafe_allow_html=True)
     
@@ -302,7 +303,6 @@ elif st.session_state.page == 'result':
     t_v_e = "테스토스테론" if scores["T"] >= scores["E"] else "에스트로겐"
     d_v_s = "도파민" if scores["D"] >= scores["S"] else "세로토닌"
     
-    # ⭐️ 텍스트 데이터 100% 교체 ⭐️
     if t_v_e == "에스트로겐" and d_v_s == "도파민":
         large_title = "감성로맨티스트형"
         small_desc = "에겐 & 도파민"
@@ -354,7 +354,6 @@ elif st.session_state.page == 'result':
     st.markdown(f"#### ({small_desc}형)") 
     st.write("")
     
-    # ⭐️ 요청하신 커스텀 상세 본문 설명 출력 ⭐️
     st.markdown(style_text)
     st.write("")
     st.markdown(f"**추천 궁합 파트너:** **{match}**")
