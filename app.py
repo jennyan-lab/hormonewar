@@ -8,7 +8,7 @@ import replicate
 # ==========================================
 # 0. 화면 기본 설정
 # ==========================================
-st.set_page_config(page_title="연애도 결국 호르몬빨? 내 연애 유형 테스트", layout="centered")
+st.set_page_config(page_title="연애도 결국 호르몬빨? 내 연애\n유형테스트", layout="centered")
 
 # ==========================================
 # 1. API 키 설정 (필수!)
@@ -219,8 +219,8 @@ if st.session_state.page == 'intro':
     # ⭐️ HTML을 사용해 폰트 크기(px)를 자유롭게 조절할 수 있습니다 ⭐️
     st.markdown("""
     <div style="font-size: 30px; font-weight: bold; margin-bottom: 10px;">연애도 결국 호르몬빨?</div>
-    <div style="font-size: 45px; font-weight: bold; margin-bottom: 30px;">내 연애 유형 테스트</div>
-    <div style="font-size: 18px; color: #333333;">연애 유형 테스트와 나의 캐릭터 보러가기</div>
+    <div style="font-size: 40px; font-weight: bold; margin-bottom: 30px;">내 연애 유형 테스트</div>
+    <div style="font-size: 18px; color: #333333;">나의 연애 유형 테스트 보러가기</div>
     """, unsafe_allow_html=True)
     
     st.write("") 
