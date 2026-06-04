@@ -153,7 +153,7 @@ def set_background_and_font(image_filename, font_filename):
 
 # 💡 페이지별 배경 이미지 동적 적용 💡
 if st.session_state.page in ['photo', 'result']:
-    current_bg = 'background.jpg'
+    current_bg = 'background.png'
 else:
     current_bg = 'background3.jpg'
 
@@ -238,9 +238,9 @@ elif st.session_state.page == 'quiz':
     # 💡 2개 버튼(이전/다음) 나란히 배치 💡
     col1, col2 = st.columns(2)
     with col1:
-        prev_clicked = st.button("⬅️ 이전 문항", use_container_width=True)
+        prev_clicked = st.button("◀ 이전 문항", use_container_width=True)
     with col2:
-        next_clicked = st.button("다음 문항 ➔", use_container_width=True)
+        next_clicked = st.button("다음 문항 ▶", use_container_width=True)
         
     if prev_clicked:
         if st.session_state.idx > 0:
@@ -315,7 +315,7 @@ elif st.session_state.page == 'result':
     
     st.divider()
     
-    st.markdown("### 📊 내 안의 호르몬 우세 비율")
+    st.markdown("### 내 안의 호르몬 우세 비율")
     
     te_total = scores["T"] + scores["E"]
     if te_total == 0: te_total = 1 
